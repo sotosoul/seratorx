@@ -16,9 +16,9 @@ print('Working directory is: ' + os.getcwd())
 
 current_platform = seratorx.determine_os()
 
-# archive_status = archive_srt_lib()  # True: OK. False: Error, not archived
-archive_status = True
-assert archive_status is True
+
+
+
 
 pd.set_option('display.max_columns', 5)
 

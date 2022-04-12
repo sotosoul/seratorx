@@ -39,23 +39,27 @@ def archive_srt_lib():
     :return: True of False
     """
     serato_lib_dir = '_Serato_'
-    archive_type = 'tar'  # zip or tar. When unZIPped, the size is slightly higher, why???
     path = find_music_path()
     serato_lib_path = os.path.join(path, serato_lib_dir)
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     archive_fname = serato_lib_dir + timestamp
     archive_path = os.path.join(path, archive_fname)
-    shutil.make_archive(archive_path, archive_type, serato_lib_path)
-    archived_fname = archive_path + '.' + archive_type
+    shutil.make_archive(archive_path, 'tar', serato_lib_path)
+    try:
+        os.remove(archive_path + '.tar')
+    except:
+        pass
+    shutil.make_archive(archive_path + '.tar', 'zip', serato_lib_path)
+    archived_fname = archive_path + '.tar.zip'
     try:
         prod_fsize = os.path.getsize(archived_fname)
         # print('Serato Library has been archived.\nFilename:{}\nFilesize of archived Serato library:'.format(archived_fname), round(prod_fsize/1000000, 2), 'MB')
         if prod_fsize > 0:
-            return True
+            return True, archive_fname
         else:
-            return False
+            return False, ''
     except FileNotFoundError:
-        return False
+        return False, ''
 
 
 def convert_unixtime(unix_timestamp):
