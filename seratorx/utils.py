@@ -1,11 +1,11 @@
 import os
 import platform
 import shutil
-from datetime import datetime
-import seratorx.constants as constants
 from glob import glob
-import seratorx.decoder as decoder
+from datetime import datetime
 import pandas as pd
+import seratorx.constants as constants
+import seratorx.decoder as decoder
 
 
 def determine_os():
@@ -27,6 +27,7 @@ def determine_os():
 
 
 def find_music_path(music_dir='Music'):
+    """Returns music library path"""
     user_path = os.path.expanduser('~')  # Works on mac & win
     path = os.path.join(user_path, music_dir)
     return path

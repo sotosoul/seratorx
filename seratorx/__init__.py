@@ -1,4 +1,3 @@
-# __init__.py
 from .utils import determine_os
 from .utils import find_music_path
 from .utils import archive_srt_lib
