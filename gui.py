@@ -6,7 +6,7 @@ from time import sleep
 window = Tk()
 
 window.title('Seratorx')
-window.geometry('640x400')
+window.geometry('640x400') 
 
 lbl = Label(window, text='Serato library tools', font=('Times New Roman', 18))
 lbl.grid(column=0, row=0)
