@@ -1,3 +1,6 @@
+SUPPORTED_PLATFORMS = [
+    'macOS'
+]
 SRT_TAGS = {
     'vrsn': 'Version',
     'otrk': 'Track',

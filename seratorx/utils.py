@@ -9,22 +9,7 @@ import seratorx.constants as constants
 import seratorx.decoder as decoder
 
 
-def determine_os():
-    """
-    Finds whether the system is one of the ones supported by Serato DJ
-    I.e., Windows or macOS.
-    :return: 'mac' or 'win'
-    """
-    system = platform.system()
-    if system == 'Darwin':
-        # version = platform.mac_ver()
-        version = 'mac'
-    elif system == 'Windows':
-        # version = platform.win32_ver()
-        version = 'win'
-    else:
-        raise Exception('Operating System not supported.')
-    return version
+
 
 
 def find_music_path(music_dir='Music'):
