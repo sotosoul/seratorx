@@ -3,10 +3,16 @@ import main
 import seratorx
 from time import sleep
 
+__author__ = "Sotirios Soulantikas <soulantikas@icloud.com>"
+__licence__ = "Open source"
+__version__ = "0.0.1"
+__license__ = __licence__
+
+
 window = Tk()
 
 window.title('Seratorx')
-window.geometry('640x400') 
+window.geometry('640x400')
 
 lbl = Label(window, text='Serato library tools', font=('Times New Roman', 18))
 lbl.grid(column=0, row=0)
