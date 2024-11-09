@@ -20,12 +20,14 @@ current_platform = seratorx.determine_os()
 pd.set_option('display.max_columns', 5)
 
 music_path = seratorx.find_music_path()
-print(music_path)
+print(f'MUSIC PATH: {music_path}')
 main_database_path = os.path.join(music_path, '_Serato_', 'database V2')
 subcrates_path = os.path.join(music_path, '_Serato_', 'Subcrates')
+music_files_directory_path = os.path.join(music_path, 'Serato')
 
 my_database = seratorx.database_reader(main_database_path)
 my_subcrates = seratorx.subcrates_finder(subcrates_path, current_platform)
+tracks_on_disk = seratorx.get_music_files(music_files_directory_path, current_platform)
 
 subcrt_tracks = []
 for subcrate in my_subcrates:
@@ -51,3 +53,6 @@ elif my_database.shape[0] > len(subcrt_tracks):
 else:
     raise ValueError('More tracks in crates than in database...?!')
 
+print(f'TOTAL FILES ON DISK: {len(tracks_on_disk)}')
+orphan_music_files = list(set(database_list).symmetric_difference(set(tracks_on_disk)))
+print(f'ORPHAN FILE ON DISK {len(orphan_music_files)}: {orphan_music_files}')

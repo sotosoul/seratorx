@@ -1,6 +1,7 @@
 import os
 import platform
 import shutil
+from pathlib import Path
 from glob import glob
 from datetime import datetime
 import pandas as pd
@@ -8,22 +9,7 @@ import seratorx.constants as constants
 import seratorx.decoder as decoder
 
 
-def determine_os():
-    """
-    Finds whether the system is one of the ones supported by Serato DJ
-    I.e., Windows or macOS.
-    :return: 'mac' or 'win'
-    """
-    system = platform.system()
-    if system == 'Darwin':
-        # version = platform.mac_ver()
-        version = 'mac'
-    elif system == 'Windows':
-        # version = platform.win32_ver()
-        version = 'win'
-    else:
-        raise Exception('Operating System not supported.')
-    return version
+
 
 
 def find_music_path(music_dir='Music'):
@@ -112,7 +98,7 @@ def database_reader(path):
     for track in decoded_data:
         track = dict(track[1])
         all_tracks.append(track)
-    df = pd.DataFrame(all_tracks)
+    df = pd.DataFrame(all_tracks).astype(str)
     df.columns = srt_tag_decoder(df.columns.tolist())
     df.fillna('', inplace=True)
     return df
@@ -132,6 +118,20 @@ def subcrate_reader(path):
     # df.columns = srt_tag_decoder(df.columns.tolist())
     # df.fillna('', inplace=True)
     # return df
+
+
+def get_music_files(path: str | Path, operating_system):
+    if operating_system == 'mac':
+        slash = '/'
+    elif operating_system == 'win':
+        slash = r'\\'
+    path = path + slash
+    subcrates_full_paths = glob('{}*.crate'.format(path))
+    subcrates_full_paths
+    files = glob(f'{path}/*.*')
+    files = [f.lstrip(slash) for f in files]
+    files.sort()
+    return files    
 
 
 def df_csv_writer(df, ofname='outfile.csv'):
