@@ -1,4 +1,4 @@
 from seratorx import Library
 
-lib = Library('nia')
-print(lib.supported)
+lib = Library()
+print(lib.library_path)

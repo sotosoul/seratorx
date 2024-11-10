@@ -1,6 +1,5 @@
-SUPPORTED_PLATFORMS = [
-    'macOS'
-]
+SUPPORTED_PLATFORMS = ['macOS']
+LIBRARY_FOLDER_NAME = 'Music'
 SRT_TAGS = {
     'vrsn': 'Version',
     'otrk': 'Track',
@@ -47,4 +46,3 @@ SRT_TAGS = {
     'udsc': '',
     'ptrk': 'Track'
 }
-
