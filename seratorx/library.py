@@ -1,4 +1,5 @@
 import platform
+import os
 from pathlib import Path
 import logging
 from glob import glob
@@ -46,6 +47,19 @@ class Library:
 
     def __repr__(self):
         return self.__str__()
+
+    def __get_library_path(self, library_path: str | Path | None) -> Path:
+        if library_path is None:
+            user_path = os.path.expanduser('~')  # Works on mac & win
+            library_path = os.path.join(user_path, LIBRARY_FOLDER_NAME)
+        elif isinstance(library_path, (str, Path)):
+            pass
+        else:
+            raise TypeError("Invalid library path: %s, type: %s.",
+                            library_path, type(library_path))
+        assert os.path.isdir(library_path)
+        self.logger.info("Serato library found at %s", library_path)
+        return Path(library_path)
 
     @property
     def supported(self):

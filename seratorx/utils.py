@@ -9,28 +9,17 @@ import seratorx.constants as constants
 import seratorx.decoder as decoder
 
 
-
-
-
-def find_music_path(music_dir='Music'):
-    """Returns music library path"""
-    user_path = os.path.expanduser('~')  # Works on mac & win
-    path = os.path.join(user_path, music_dir)
-    return path
-
-
-def archive_srt_lib():
+def archive_srt_lib(library_path: Path):
     """
     Creates an archive of the current Serato library directory.
     Works on both mac & windows.
     :return: True of False
     """
     serato_lib_dir = '_Serato_'
-    path = find_music_path()
-    serato_lib_path = os.path.join(path, serato_lib_dir)
+    serato_lib_path = os.path.join(library_path, serato_lib_dir)
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
     archive_fname = serato_lib_dir + timestamp
-    archive_path = os.path.join(path, archive_fname)
+    archive_path = os.path.join(library_path, archive_fname)
     shutil.make_archive(archive_path, 'tar', serato_lib_path)
     try:
         os.remove(archive_path + '.tar')
