@@ -1,6 +1,5 @@
-SUPPORTED_PLATFORMS = [
-    'macOS'
-]
+SUPPORTED_PLATFORMS = ['macOS']
+EXTENSIONS = ['mp3', 'wav', 'm4a']
 SRT_TAGS = {
     'vrsn': 'Version',
     'otrk': 'Track',

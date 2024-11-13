@@ -120,18 +120,7 @@ def subcrate_reader(path):
     # return df
 
 
-def get_music_files(path: str | Path, operating_system):
-    if operating_system == 'mac':
-        slash = '/'
-    elif operating_system == 'win':
-        slash = r'\\'
-    path = path + slash
-    subcrates_full_paths = glob('{}*.crate'.format(path))
-    subcrates_full_paths
-    files = glob(f'{path}/*.*')
-    files = [f.lstrip(slash) for f in files]
-    files.sort()
-    return files    
+
 
 
 def df_csv_writer(df, ofname='outfile.csv'):
