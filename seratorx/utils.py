@@ -1,12 +1,53 @@
 import os
-import platform
 import shutil
 from pathlib import Path
 from glob import glob
 from datetime import datetime
 import pandas as pd
+from .constants import ASCII_CONTROL_CHARACTERS, SRT_TAGS, TAGS
 import seratorx.constants as constants
 import seratorx.decoder as decoder
+
+
+def get_decoded_string(raw_bytes):
+    """Decodes the mixed-encoding byte string to a standard Unicode string."""
+    decoded_parts = []
+    i = 0
+    while i < len(raw_bytes):
+        byte1 = raw_bytes[i]
+        
+        # Two-byte sequence (Greek)
+        if byte1 == 0x03 and i + 1 < len(raw_bytes):
+            decoded_parts.append(raw_bytes[i:i+2].decode('utf-16-be'))
+            i += 2
+        # Single-byte sequence (ASCII)
+        elif byte1 <= 0x7F:
+            decoded_parts.append(chr(byte1))
+            i += 1
+        else:
+            # Fallback for unexpected bytes
+            i += 1
+            
+    return "".join(decoded_parts)
+
+
+def translate_line(line: str) -> str:
+    total_tags = len(SRT_TAGS)
+    total_ascii_ctrl_chars = len(ASCII_CONTROL_CHARACTERS)
+    for tg in range(0, total_tags):
+        for cc in range(0, total_ascii_ctrl_chars):
+            tag = SRT_TAGS[tg] + ASCII_CONTROL_CHARACTERS[cc]
+            line: bytes = line.replace(tag, TAGS[tg])
+    line = line.replace(b'uadd', b'\nUadd (?): ')
+
+    marker = b'Serato/'
+    start = line.find(marker)
+    utf16_part = line[start + len(marker):]
+
+    track_file = get_decoded_string(utf16_part)
+
+    return track_file
+
 
 
 def archive_srt_lib(library_path: Path):
@@ -65,20 +106,7 @@ def srt_tag_decoder(src_tag):
         return src_tag
 
 
-def subcrates_finder(path, operating_system):
-    if operating_system == 'mac':
-        path = path + '/'
-    elif operating_system == 'win':
-        path = path + r'\\'
-    subcrates_full_paths = glob('{}*.crate'.format(path))
-    subcrate_names = []
-    for full_path in subcrates_full_paths:
-        subcrate_names.append(full_path)
-    subcrate_names.sort()
-    return subcrate_names
-
-
-def database_reader(path):
+def database_reader(path, as_dataframe: bool = True) -> pd.DataFrame | list[dict]:
     with open(path, 'rb') as infile:
         data = infile.read()
     decoded_data = decoder.decode(data)
@@ -87,6 +115,8 @@ def database_reader(path):
     for track in decoded_data:
         track = dict(track[1])
         all_tracks.append(track)
+    if as_dataframe is False:
+        return all_tracks
     df = pd.DataFrame(all_tracks).astype(str)
     df.columns = srt_tag_decoder(df.columns.tolist())
     df.fillna('', inplace=True)
