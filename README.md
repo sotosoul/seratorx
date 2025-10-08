@@ -12,18 +12,8 @@ I have read a lot and I have watched several YouTube videos about how to best or
 
 In short, **one directory** (such as `/Users/my_username/Music/Serato`) **containing all the audio files and no subfolders**.
 
-### Serato library limitations
+## Get started
 
-
-
-#### Not all DJs have coding skills.
-
-It has been my intention to create 
+Have a look at the `start_here.py` file to get an idea of what you can do with Seratorx.
 
 _Note: I'm using the decoding functions available on the repo of [sharst](https://github.com/sharst)._
-
-# Functions
-
-## Library sync
-
-Arguably the best practice is to have your DJ music on the internal drive of the computer and not on external media because it removes one point of failure. An even better practice is to have two computers where the internal libraries are synchronized periodically. There are ways to do this using cloud storage services such as iCloud, OneDrive, or Dropbox. This utility does not need such a service and syncs data with a "direct connection" between two computers.

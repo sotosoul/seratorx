@@ -1,7 +1,6 @@
 import os
 import shutil
 from pathlib import Path
-from glob import glob
 from datetime import datetime
 import pandas as pd
 from .constants import ASCII_CONTROL_CHARACTERS, SRT_TAGS, TAGS
@@ -47,7 +46,6 @@ def translate_line(line: str) -> str:
     track_file = get_decoded_string(utf16_part)
 
     return track_file
-
 
 
 def archive_srt_lib(library_path: Path):
@@ -137,9 +135,6 @@ def subcrate_reader(path):
     # df.columns = srt_tag_decoder(df.columns.tolist())
     # df.fillna('', inplace=True)
     # return df
-
-
-
 
 
 def df_csv_writer(df, ofname='outfile.csv'):

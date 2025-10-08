@@ -23,11 +23,10 @@ my_subcrates = my_library.list_crates()
 my_music_files = my_library.list_music_files()
 
 # List tracks that have been imported to your Library:
-my_tracks = my_library.list_tracks(as_dataframe=False)
+my_tracks = my_library.list_tracks(as_dataframe=True)
 
 # List tracks that have been imported to your Library:
 my_tracks_in_crates = my_library.list_tracks_in_crates()
 
 # List orphanated Tracks, i.e., tracks that are imported but not in at least one Crate.
 my_orphan_tracks = my_library.list_orphans()
-print(my_orphan_tracks)
