@@ -1,12 +1,11 @@
 import platform
-import os
 from pathlib import Path
 import logging
 from glob import glob
 import pandas as pd
 from ..models.crate import Crate
 from ..models.track import Track
-from ..constants import SUPPORTED_PLATFORMS, EXTENSIONS, LIBRARY_FOLDER_NAME
+from ..constants import SUPPORTED_PLATFORMS, EXTENSIONS
 from ..exceptions import UnsupportedSystemError
 from ..utils import database_reader
 
@@ -26,52 +25,83 @@ class Library:
                 f"Invalid system: {res['system']}. Supported systems: "
                 f"{', '.join(SUPPORTED_PLATFORMS)}.")
 
+    def __get_directory_path(self, p: str | Path) -> Path:
+        if isinstance(p, str):
+            p = Path(p)
+
+        p_absolute = p.expanduser().resolve()
+
+        if not p_absolute.exists():
+            raise FileNotFoundError(f"Invalid: {p_absolute=}")
+
+        self.logger.info("Directory found: %s", p_absolute)
+        return p_absolute
+
     def __init__(
             self,
-            library: str | Path | None = None,
-            collection: str | Path | None = None,
+            library_database: str | Path = '~/Music/_Serato_/',
+            music_files_folder: str | Path | None = '~/Music/Serato/',
             logger: logging.Logger | None = None
         ) -> None:
+        """Serato DJ Library instance.
+
+        Your folder containing your music files should have a flat
+        hierarchy, meaning *no subfolders*.
+
+        Parameters
+        ----------
+        library : str | Path, optional
+            Path to your Serato library, by default '~/Music/_Serato_/'
+        collection : str | Path | None, optional
+            Path to the folder containing your music files,
+            by default '~/Music/Serato/'
+        logger : logging.Logger | None, optional
+            Logger, by default None
+        """
         if logger is None:
             logger = logging.getLogger('Library')
         self.logger = logger
-
-        if library is None:
-            library = '~/Music/_Serato_/'
-            logger.warning("Undefined path of `library`, assuming %s", library)
-
-        self.library = library
-        if collection is None:
-            collection = '~/Music/Serato/'
-            logger.warning("Undefined path of `collection`, assuming: %s", collection)
-        self.collection = collection
+        self.library = self.__get_directory_path(library_database)
+        self.collection = self.__get_directory_path(music_files_folder)
 
     def __str__(self):
-        return f"Seratorx Library <{self.collection}>"
+        return f"Serato DJ Library <database: {self.library}, music files: {self.collection}>"
 
     def __repr__(self):
         return self.__str__()
-
-    def __get_library_path(self, library_path: str | Path | None = None) -> Path:
-        if library_path is None:
-            user_path = os.path.expanduser('~')  # Works on mac & win
-            library_path = os.path.join(user_path, LIBRARY_FOLDER_NAME)
-        elif isinstance(library_path, (str, Path)):
-            pass
-        else:
-            raise TypeError(f"Invalid: {library_path=}, type: {type(library_path)}.")
-        assert os.path.isdir(library_path)
-        self.logger.info("Serato library found at %s", library_path)
-        return Path(library_path)
 
     @property
     def supported(self):
         return self.__get_os()
 
-    def list_music_files(self, export_to_txt: bool = False) -> list[Path]:
-        # path = path + slash
-        # subcrates_full_paths = glob('{}*.crate'.format(path))
+    def list_music_files(
+        self,
+        *,
+        full_path: bool = False,
+        export_to_txt: bool = False
+    ) -> list[str]:
+        """Lists music files in your collection folder regardless of
+        whether the files have been imported to Serato DJ or not.
+
+        You can optionally export the list as txt file. The filename
+        will be `serato_music_files.txt`.
+
+        Parameters
+        ----------
+        full_path : bool, optional
+            Include the full path of the file, by default False
+
+        export_to_txt : bool, optional
+            Export to text file, by default False
+
+        Returns
+        -------
+        list[str]
+            _description_
+        """
+
         all_files: list[Path] = []
+
         for e in EXTENSIONS:
             search_string = f'{self.collection}/*.{e}'
             self.logger.debug(f"Collecting files at {search_string=}")
@@ -79,25 +109,60 @@ class Library:
             self.logger.info(f"Found {len(paths)} {e} files")
             all_files += [Path(p) for p in paths]
         all_files.sort()
+
+        if full_path is True:
+            all_files = [str(f) for f in all_files]
+        else:
+            all_files = [f.name for f in all_files]
+
         if export_to_txt is True:
             with open('serato_music_files.txt', 'w') as f:
                 for file in all_files:
-                    f.write(file.name + "\n")
-        return [f.name for f in all_files]
+                    f.write(file + "\n")
+
+        return all_files
 
     def list_crates(self) -> list[Crate]:
-        # subcrates_full_paths = glob('{}*.crate'.format(path))
-        paths = glob(f'{self.library}/Subcrates/*.crate')
+        """Lists all your Crates."""
+
+        search_path = f'{self.library.resolve()}/Subcrates/*.crate'
+
+        self.logger.info("Scanning for Crate files: %s", search_path)
+
+        paths = glob(search_path)
+        assert paths, f"Missing: {paths=}"
+
         all_crates = [Path(p) for p in paths]
         all_crates.sort()
         return [Crate(c) for c in all_crates]
 
-    def list_tracks(self, as_dataframe: bool = False) -> pd.DataFrame | list[dict]:
-        database_file_path = self.__get_library_path() / '_Serato_' / 'database V2'
+    def list_tracks(
+        self,
+        *,
+        as_dataframe: bool = False
+    ) -> pd.DataFrame | list[dict]:
+        """Lists all the imported Tracks.
+
+        Parameters
+        ----------
+        as_dataframe : bool, optional
+            Return the result as a Pandas Dataframe, by default False
+
+        Returns
+        -------
+        pd.DataFrame | list[dict]
+            Imported Tracks
+        """
+        database_file_path = self.library / 'database V2'
         self.logger.info("Reading Serato database at: %s", database_file_path)
         return database_reader(database_file_path, as_dataframe)
 
-    def list_tracks_in_crates(self, dump_to_file: str | Path | None = None) -> list[str]:
+    def list_tracks_in_crates(
+        self,
+        *,
+        dump_to_file: str | Path | None = None
+    ) -> list[str]:
+        """Lists all imported Tracks that inside of at least one Crate."""
         tracks_in_crates: list[str] = []
         crates = self.list_crates()
 
@@ -118,29 +183,32 @@ class Library:
 
         return tracks_in_crates
 
-    def find_mismatches(self, list_of_tracks: list[str]) -> list[str]:
-        """Finds mismathing tracks"""
-        not_matched = []
-        for t in list_of_tracks:
-
-            self.logger.debug("Checking if `%s` is in at least one Crate...", t)
-
-            if t in list_of_tracks:
-                self.logger.debug("Found in Crate: `%s`", t)
-            else:
-                self.logger.info("Not in Crate: `%s`", t)
-                not_matched.append(t)
-
-        if not_matched:
-            self.logger.warning("Found %s orphan (not matched) Tracks", len(not_matched))
-
-        return not_matched
-
     def list_orphans(self):
         """Lists tracks that are not in at least one Crate.
 
         In my opinion, it is important that Tracks are always
         in at least one Crate otherwise they are kind of *lost
         in space*...
+
+        Warning
+        -------
+        Currently it doesn't work well with non-ascii characters. Working on it.
         """
-        return self.find_mismatches(self.list_tracks_in_crates())
+        orphans = []
+        tracks_in_crates = self.list_tracks_in_crates()
+        imported_tracks = [t['pfil'] for t in self.list_tracks()]
+        imported_tracks_filenames = [t.split('/')[-1] for t in imported_tracks]
+
+        for trk in imported_tracks_filenames:
+            self.logger.debug("Checking if `%s` is in at least one Crate...", trk)
+
+            if trk in tracks_in_crates:
+                self.logger.debug("Found in Crate: `%s`", trk)
+            else:
+                self.logger.info("Not in Crate: `%s`", trk)
+                orphans.append(trk)
+
+        if orphans:
+            self.logger.warning("Found %s orphan (not matched) Tracks", len(orphans))
+
+        return orphans
