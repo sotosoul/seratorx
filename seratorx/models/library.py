@@ -97,6 +97,50 @@ class Library:
         self.logger.info("Reading Serato database at: %s", database_file_path)
         return database_reader(database_file_path, as_dataframe)
 
+    def list_tracks_in_crates(self, dump_to_file: str | Path | None = None) -> list[str]:
+        tracks_in_crates: list[str] = []
+        crates = self.list_crates()
+
+        self.logger.debug("Collecting Tracks from %s Crates...", len(crates))
+
+        for c in crates:
+            tracks_in_crates += c.tracks
+        tracks_in_crates = list(set(tracks_in_crates))
+
+        self.logger.info("Collected %s unique Tracks from %s (all) Crates.", len(tracks_in_crates), len(crates))
+
+        if dump_to_file:
+            self.logger.info("Writing to file: %s", dump_to_file)
+            assert isinstance(dump_to_file, (str, Path))
+            with open(dump_to_file, 'w') as f:
+                for t in tracks_in_crates:
+                    f.write(t + '\n')
+
+        return tracks_in_crates
+
+    def find_mismatches(self, list_of_tracks: list[str]) -> list[str]:
+        """Finds mismathing tracks"""
+        not_matched = []
+        for t in list_of_tracks:
+
+            self.logger.debug("Checking if `%s` is in at least one Crate...", t)
+
+            if t in list_of_tracks:
+                self.logger.debug("Found in Crate: `%s`", t)
+            else:
+                self.logger.info("Not in Crate: `%s`", t)
+                not_matched.append(t)
+
+        if not_matched:
+            self.logger.warning("Found %s orphan (not matched) Tracks", len(not_matched))
+
+        return not_matched
+
     def list_orphans(self):
-        """Finds tracks that are not in at least one Crate."""
-        ...
+        """Lists tracks that are not in at least one Crate.
+
+        In my opinion, it is important that Tracks are always
+        in at least one Crate otherwise they are kind of *lost
+        in space*...
+        """
+        return self.find_mismatches(self.list_tracks_in_crates())
