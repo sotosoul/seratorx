@@ -30,3 +30,9 @@ my_tracks_in_crates = my_library.list_tracks_in_crates()
 
 # List orphanated Tracks, i.e., tracks that are imported but not in at least one Crate.
 my_orphan_tracks = my_library.list_orphans()
+
+# List non-imported Files, i.e., music files that are in your respective folder but have not been imported. Ideally, this should always return zero.
+nonimported_files = my_library.list_nonimported()
+
+# List imported Files, i.e., music files that are in your respective folder and have been imported.
+imported_files = my_library.list_imported()

@@ -1,5 +1,6 @@
 import platform
 from pathlib import Path
+from typing import Any
 import logging
 from glob import glob
 import pandas as pd
@@ -140,7 +141,7 @@ class Library:
         self,
         *,
         as_dataframe: bool = False
-    ) -> pd.DataFrame | list[dict]:
+    ) -> pd.DataFrame | list[dict[str, Any]]:
         """Lists all the imported Tracks.
 
         Parameters
@@ -183,7 +184,7 @@ class Library:
 
         return tracks_in_crates
 
-    def list_orphans(self):
+    def list_orphans(self) -> list[str]:
         """Lists tracks that are not in at least one Crate.
 
         In my opinion, it is important that Tracks are always
@@ -212,3 +213,29 @@ class Library:
             self.logger.warning("Found %s orphan (not matched) Tracks", len(orphans))
 
         return orphans
+
+    def list_nonimported(self) -> set[str]:
+        """Lists music files that exist in the respective folder
+        but **have not been imported** to the Serato Library."""
+        music_files = self.list_music_files()
+        tracks = self.list_tracks()
+        track_filenames = [trk['pfil'].split('/')[-1] for trk in tracks]
+        nonimported = set(music_files) ^ set(track_filenames)  # bitwise or
+        # nonimported = set(music_files).difference(track_filenames)  # same as above
+        if nonimported:
+            self.logger.warning("Found %s non-imported file(s).", len(nonimported))
+        return nonimported
+
+    def list_imported(self) -> set[str]:
+        """Lists music files that exist in the respective folder
+        and **have been imported** to the Serato Library"""
+        music_files = self.list_music_files()
+        tracks = self.list_tracks()
+        track_filenames = [trk['pfil'].split('/')[-1] for trk in tracks]
+        imported = set(music_files) & set(track_filenames)  # bitwise and
+        # imported = set(music_files).intersection(track_filenames)  # same as above
+        if not imported:
+            self.logger.error("No files have been imported.")
+        else:
+            self.logger.info("This many files have been imported: ", len(imported))
+        return imported
